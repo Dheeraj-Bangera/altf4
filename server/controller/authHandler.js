@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
 const OTP = require("../model/OTP");
+const Vendor = require("../model/Vendor");
 require("dotenv").config();
 
 
@@ -186,6 +187,129 @@ const loginHandler = async (req, res) => {
       return res.status(500).send("Internal server error");
     }
 };
+const signupVendor = async (req,res)=>{
+  try {
+    const {
+      name,
+      mobile_no,
+      email,
+      password,
+    } = req.body;
+    if (
+      name == "" ||
+      mobile_no == "" ||
+      email == "" ||
+      password == ""  
+    ) {
+      return res.status(400).json({
+        message: "please fill all fields",
+        success: false,
+      });
+    }
+    
+    //checking the OTP
+    
+   
+      const hashPassword = await bcrypt.hash(req.body.password, 10);
+      const newUser = await Vendor.create({
+      name,
+      mobile_no,
+      email,
+        password: hashPassword,
+      });
+      if (!newUser) {
+        return res.status(500).json({
+          message: "user created",
+          success: true,
+        });
+      }
+      const payload = {
+        id: newUser._id,
+        email: newUser.email,
+        first_name: newUser.first_name,
+        last_name: newUser.lastname,
+        role: "vendor",
+      };
+      let token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+        expiresIn: "1h",
+      });
+
+      return res
+        .cookie("token", token, {
+          expires: new Date(Date.now() + 1000 * 60 * 60),
+          httpOnly: true,
+        })
+        .json({
+          message: "Account created",
+          succes: true,
+          user: {
+              name,
+              mobile_no,
+              email
+          },
+          token: token,
+        });
+    
+  } catch (err) {
+    console.log(err.message);
+    return res.status(500).send("Internal server error");
+  }
+}
+const loginVendorHandler = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    if (!email || !password) {
+      res
+        .status(400)
+        .json({ message: "Please fill all fields", success: false });
+    } else {
+      let newUser = await Vendor.findOne({ email });
+      if (!newUser)
+        return res.status(400).json({
+          message: "Email is not registered.",
+          success: false,
+        });
+
+      if (await bcrypt.compare(password, newUser.password)) {
+        const payload = {
+          id: newUser._id,
+          email: newUser.email,
+          name: newUser.name,
+          role:"vendor"
+        };
+        let token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+          expiresIn: "10h",
+        });
+
+        return res
+          .cookie("token", token, {
+            expires: new Date(Date.now() + 1000 * 60 * 60),
+            httpOnly: true,
+          })
+          .json({
+            message: "Account verified",
+            succes: "true",
+            user: {
+              name: newUser.name,
+              email: newUser.email,
+              role: "vendor",
+            },
+            token: token,
+          });
+      } else {
+        return res.sendStatus(403).json({
+          message: "Invalid credentials",
+          success: "false",
+        });
+      }
+    }
+  } catch (err) {
+    console.log("Error", err);
+    return res.status(500).send("Internal server error");
+  }
+};
 const userInfoHandler = async (req, res) => {
   try {
     res.send(req.body.userData);
@@ -198,5 +322,7 @@ module.exports= {
   sendOtpHandler,
   signupHandler,
   loginHandler,
-  userInfoHandler
+  userInfoHandler,
+  signupVendor,
+  loginVendorHandler
 }

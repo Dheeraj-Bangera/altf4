@@ -6,9 +6,8 @@ const itemSchema = new mongoose.Schema({
     required: true,
   },
   item_name: {
-    type:mongoose.Types.ObjectId,
-    ref:"Item" ,
-    required:true 
+    type: String,
+    required: true,
 },
   vendor:
   {
