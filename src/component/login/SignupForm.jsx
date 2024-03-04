@@ -1,19 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaCircleInfo } from "react-icons/fa6";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
-import { NavLink } from "react-router-dom";
+import { NavLink, Navigate } from "react-router-dom";
 import axios from "axios";
+import OTP from "../otp";
 
 const USER_REGEX = /^[a-zA-Z\s.'-]+$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const CONTACT_REGEX = /^\+(?:[0-9] ?){6,14}[0-9]$/;
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const SIGNUP_URL = "/user/signup";
+const SIGNUP_URL = "http://localhost:8080/api/auth/getOtp";
 
 const SignUpForm = () => {
   const userRef = useRef();
   const errRef = useRef();
-
+const [data, setdata] = useState({
+})
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -82,19 +84,27 @@ const SignUpForm = () => {
     const v1 = USER_REGEX.test(user);
     const v2 = PWD_REGEX.test(pwd);
 
+
     if (!v1 || !v2) {
       setErrMsg("Invalid Entry");
       return;
     }
 
     try {
+      setdata({
+        email,
+        password:pwd,
+        batch:2021,
+        name:user,
+        mobile_no:phoneNumber
+
+      });
       const response = await axios.post(
         SIGNUP_URL,
         JSON.stringify({
-          name: user,
-          password: pwd,
+          
           email: email,
-          phoneNumber: phoneNumber,
+          
         }),
         {
           headers: { "Content-Type": "application/json" },
@@ -102,9 +112,9 @@ const SignUpForm = () => {
         }
       );
 
-      console.log(response?.data);
-      console.log(response?.accessToken);
-      console.log(JSON.stringify(response));
+      if (response.status == 200){
+        return(<><OTP data = {data}></OTP></>)
+      }
       setSuccess(true);
     } catch (err) {
       console.error("Registration error:", err);

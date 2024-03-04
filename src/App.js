@@ -9,9 +9,11 @@ import Navbar from "./component/Navbar.jsx";
 import Login from "./component/login/Login";
 import Signup from "./component/login/Signup";
 import Footer from "./component/Footer";
+
 // import Feeds from "./component/pages/feeds/Main";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import OTP from "./component/otp.jsx";
 
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
         {/* <Route path="/Work" element={<div>{<Work />}</div>} /> */}
         <Route path="/Login" element={<div>{<Login />}</div>} />
         <Route path="/Signup" element={<div>{<Signup />}</div>} />
+        <Route path="/Otp" element={<div>{<OTP />}</div>} />
         {/* <Route path="/feeds" element={<div>{<Feeds />}</div>} /> */}
       
       </Routes>
